@@ -1,0 +1,12 @@
+[Unit]
+Description=starting a net radio
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=/home/rpi
+ExecStart=/home/rpi/env/bin/python3 /home/rpi/piradio.py
+User=rpi
+
+[Install]
+WantedBy=multi-user.target
