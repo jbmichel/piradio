@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 WorkingDirectory=/home/rpi
-ExecStart=/home/rpi/env/bin/python3 /home/rpi/piradio.py
+ExecStart=/home/rpi/env/bin/python3 /home/rpi/piradio/piradio.py
 User=rpi
 
 [Install]

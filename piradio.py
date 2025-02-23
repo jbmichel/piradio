@@ -37,25 +37,6 @@ stations_list = [
     ['http://direct.fipradio.fr/live/fip-webradio2.mp3', 'FIP Jazz'],
 ]
 
-stations = {
-#    0:['https://fm939.wnyc.org/wnycfm', 'WNYC'],
-    0:['https://am820.wnyc.org/wnycam', 'WNYC AM'],
-    1:['https://novazz.ice.infomaniak.ch/novazz-128.mp3', 'Nova'],
-    2:['http://nova-ln.ice.infomaniak.ch/nova-ln-128.mp3', 'Nova la nuit'],
-    3:['https://stream.radiohelsinki.fi/stream', 'Radio Helsinki'],
-    4:['http://stream.live.vc.bbcmedia.co.uk/bbc_world_service', 'BBC World Service'],
-    5:['http://icecast.radiofrance.fr/franceinfo-midfi.mp3', 'France Info'],
-    6:['http://direct.franceculture.fr/live/franceculture-midfi.mp3', 'France Culture'],
-    7:['http://icecast.radiofrance.fr/francemusique-midfi.mp3', 'France Musique'],
-    8:['https://icecast.radiofrance.fr/francemusiquebaroque-midfi.mp3','F. Musique Baroque'],
-    9:['http://east-mp3-128.streamthejazzgroove.com/', 'Jazz Groove'],
-    10:['http://stream.klassikradio.de/live/mp3-192/www.klassikradio.de/','Klassik Radio'],
-    11:['http://stream.klassikradio.de/piano/mp3-192/www.klassikradio.de/', 'Klassik Radio Piano'], 
-    12:['http://icecast.radiofrance.fr/fip-midfi.mp3', 'FIP'],
-    13:['http://nova-vnt.ice.infomaniak.ch:80/nova-vnt-128', 'Nova Vintage'],
-    14:['http://direct.fipradio.fr/live/fip-webradio2.mp3', 'FIP Jazz'],
-}
-
 stations = dict(enumerate(stations_list))
 
 #-------- Rotary encoder -------
