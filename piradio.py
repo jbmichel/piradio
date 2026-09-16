@@ -5,6 +5,7 @@
 
 import board
 import displayio
+from fourwire import FourWire
 import adafruit_displayio_ssd1306
 import busio
 import terminalio
@@ -12,25 +13,23 @@ from adafruit_display_text import label
 
 import os
 import subprocess
+import time
 
 from adafruit_seesaw import seesaw, rotaryio, digitalio
 
 stations_list = [
+    ['https://icecast.radiofrance.fr/montoutpetitfranceinter-midfi.mp3', 'Tout Petit'],
     ['http://icecast.radiofrance.fr/franceinter-midfi.mp3', 'France Inter'],
     ['http://icecast.radiofrance.fr/franceinfo-midfi.mp3', 'France Info'],
     ['http://stream.live.vc.bbcmedia.co.uk/bbc_world_service', 'BBC World Service'],
-    ['https://am820.wnyc.org/wnycam', 'WNYC AM'],
     ['http://direct.franceculture.fr/live/franceculture-midfi.mp3', 'France Culture'],
-    ['http://stream-relay-geo.ntslive.net/stream', 'NTS 1'],
-    ['http://stream-relay-geo.ntslive.net/stream2', 'NTS 2'],
     ['https://novazz.ice.infomaniak.ch/novazz-128.mp3', 'Nova'],
     ['http://nova-ln.ice.infomaniak.ch/nova-ln-128.mp3', 'Nova la nuit'],
-    ['http://nova-vnt.ice.infomaniak.ch:80/nova-vnt-128', 'Nova Vintage'],
     ['http://icecast.radiofrance.fr/fip-midfi.mp3', 'FIP'],
     ['https://stream.radiohelsinki.fi/stream', 'Radio Helsinki'],
     ['http://icecast.radiofrance.fr/francemusique-midfi.mp3', 'France Musique'],
-    ['http://stream.klassikradio.de/live/mp3-192/www.klassikradio.de/','Klassik Radio'],
-    ['http://stream.klassikradio.de/piano/mp3-192/www.klassikradio.de/', 'Klassik Radio Piano'], 
+    ['http://stream.klassikradio.de/live/mp3-192/www.klassikradio.de/','Klassik'],
+    ['http://stream.klassikradio.de/piano/mp3-192/www.klassikradio.de/', 'Klassik Piano'],
     ['https://icecast.radiofrance.fr/francemusiquebaroque-midfi.mp3','F. Musique Baroque'],
     ['http://east-mp3-128.streamthejazzgroove.com/', 'Jazz Groove'],
     ['http://tsfjazz.ice.infomaniak.ch/tsfjazz-high.mp3', 'TSF Jazz'],
@@ -38,6 +37,8 @@ stations_list = [
 ]
 
 stations = dict(enumerate(stations_list))
+# +1 slot for 'silence', which sits between the last station and the first
+total_positions = len(stations_list) + 1
 
 #-------- Rotary encoder -------
 
@@ -59,6 +60,14 @@ button_held = False
 encoder = rotaryio.IncrementalEncoder(seesaw)
 last_position = None
 
+# The encoder can occasionally report a spurious reading (e.g. right after the
+# seesaw chip powers on, or from electrical noise). Only act on a position once
+# it has read the same value several times in a row, so a blip doesn't trigger
+# a real station switch.
+DEBOUNCE_READS = 4
+pending_position = None
+pending_count = 0
+
 #-------- OLED display --------
 displayio.release_displays()
 
@@ -67,32 +76,42 @@ tft_cs = board.D5
 tft_dc = board.D6
 tft_reset = board.D13
 
-display_bus = displayio.FourWire(spi, command=tft_dc, chip_select=tft_cs, reset=tft_reset, baudrate=1000000)
+display_bus = FourWire(spi, command=tft_dc, chip_select=tft_cs, reset=tft_reset, baudrate=1000000)
 
 WIDTH = 128
 HEIGHT = 32  # Change to 64 if needed
 BORDER = 5
 
-display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=WIDTH, height=HEIGHT)
+display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=WIDTH, height=HEIGHT, auto_refresh=False)
 #splash = displayio.Group()
 #display.root_group = splash
 
 while True:
-    # negate the position to make clockwise rotation positive
-    position = -encoder.position
+    time.sleep(0.02)
 
-    if position != last_position:
+    # negate the position to make clockwise rotation positive, then wrap it into
+    # a circular range so the station list loops through 'silence' at both ends.
+    # +1 offset so the encoder's boot position (0) starts on the first station
+    # instead of 'silence'.
+    position = (-encoder.position + 1) % total_positions
+
+    if position == pending_position:
+        pending_count += 1
+    else:
+        pending_position = position
+        pending_count = 1
+
+    if pending_count >= DEBOUNCE_READS and position != last_position:
         last_position = position
         print("Position: {}".format(position))
         subprocess.call(['killall', 'mpg123'])
         print("stopped previous track")
 
         splash = displayio.Group()
-        display.root_group = splash
 
-        if stations.get(position):
-            station_url = stations.get(position)[0]
-            station_name = stations.get(position)[1]
+        if stations.get(position - 1):
+            station_url = stations.get(position - 1)[0]
+            station_name = stations.get(position - 1)[1]
             os.system('mpg123 -f 7000 %s &'%station_url)
             print('playing %s'%station_name)
 
@@ -102,6 +121,9 @@ while True:
             print("playing silence")
             text_area = label.Label(terminalio.FONT, text='silence', color=0xFFFFFF, x=1, y=10)
             splash.append(text_area)
+
+        display.root_group = splash
+        display.refresh()
 
     if not button.value and not button_held:
         button_held = True
