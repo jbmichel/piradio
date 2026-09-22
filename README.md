@@ -1,5 +1,9 @@
 # Physical web radio
 
+I love listening to music, but I don't love being glued to my phone. So I built this physical radio. It plays web radio stations that I like. This version is based on Raspberry Pi, but you can just as well make it with any microcontroller. 
+
+![Look Ma, with hands!](outside.jpeg)
+
 A headless Raspberry Pi internet radio. Turn the rotary encoder's knob to
 cycle through a fixed list of internet radio stations; a small OLED screen
 shows what's currently playing (or "silence").
@@ -80,6 +84,8 @@ See output
 - This is how I installed CircuitPi: https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi
 - This is what ended up working: https://www.instructables.com/Keeping-It-Stoopid-Simple-Internet-Radio-KISSIR/
 Could not get streaming mp3s to play from python directly; this instructs the OS to play it through mpg123.
+
+(note: this was before Claude. Now, just spin out Claude and just ask it, install this).
 
 ## Future extensions
 ### Pico
